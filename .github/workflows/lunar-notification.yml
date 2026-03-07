@@ -2,9 +2,8 @@ name: Lunar Calendar Notification
 
 on:
   schedule:
-    # 每天早上 8 点运行（北京时间）
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   send-notification:
@@ -48,11 +47,16 @@ jobs:
               
               const r = lunarRes.data.result;
               
+              // 打印返回的数据，方便调试
+              console.log('✅ API返回成功');
+              console.log('农历:', r.lmonthname + r.lubarmonth + r.lunarday);
+              console.log('干支:', r.tiangandizhiyear, r.tiangandizhimonth, r.tiangandizhiday);
+              
               // 拼接农历日期
               const lunarDate = r.lmonthname + r.lubarmonth + r.lunarday;
               const title = '📅 今日农历：' + lunarDate;
               
-              // 处理宜忌，把点号替换成顿号
+              // 处理宜忌
               const fitness = r.fitness ? r.fitness.split('.').join('、') : '无';
               const taboo = r.taboo ? r.taboo.split('.').join('、') : '无';
               
