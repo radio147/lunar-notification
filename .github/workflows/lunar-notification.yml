@@ -48,15 +48,26 @@ jobs:
               
               const r = lunarRes.data.result;
               
-              const title = '📅 今日农历：' + r.lunar;
+              // 拼接农历日期
+              const lunarDate = r.lmonthname + r.lubarmonth + r.lunarday;
+              const title = '📅 今日农历：' + lunarDate;
+              
+              // 处理宜忌，把点号替换成顿号
+              const fitness = r.fitness ? r.fitness.split('.').join('、') : '无';
+              const taboo = r.taboo ? r.taboo.split('.').join('、') : '无';
               
               const content = 
                 '公历：**' + dateStr + '**\\n' +
-                '农历：**' + r.lunar + '**\\n' +
-                '干支：' + r.yeargz + '年 ' + r.monthgz + '月 ' + r.daygz + '日\\n' +
-                '生肖：🐉 ' + r.animal + '\\n\\n' +
-                '✅ **宜**：' + r.suit + '\\n' +
-                '❌ **忌**：' + r.avoid + '\\n\\n' +
+                '农历：**' + lunarDate + '**\\n' +
+                '干支：' + r.tiangandizhiyear + '年 ' + r.tiangandizhimonth + '月 ' + r.tiangandizhiday + '日\\n' +
+                '生肖：🐴 ' + r.shengxiao + '\\n' +
+                '冲煞：' + r.chongsha + '\\n' +
+                '胎神：' + r.taishen + '\\n\\n' +
+                '✅ **宜**：' + fitness + '\\n' +
+                '❌ **忌**：' + taboo + '\\n\\n' +
+                '彭祖百忌：' + r.pengzu + '\\n' +
+                '星宿：' + r.xingsu + '\\n' +
+                '五行：' + r.wuxingnayear + ' | ' + r.wuxingnamonth + ' | ' + r.wuxingjiazi + '\\n\\n' +
                 '_由 GitHub 机器人自动推送，祝你今天好运！_';
               
               console.log('📤 正在发送通知...');
