@@ -81,7 +81,7 @@ jobs:
               const year = beijingTime.getFullYear();
               const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
               const day = String(beijingTime.getDate()).padStart(2, '0');
-              const dateStr = `${year}-${month}-${day}`;
+              const dateStr = \`\${year}-\${month}-\${day}\`;
               
               // 获取北京时间的小时
               const hour = beijingTime.getHours();
@@ -96,7 +96,7 @@ jobs:
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
               // 构建当前时间段的key（用于去重）- 使用北京时间
-              const currentKey = dateStr + '-' + hour;
+              const currentKey = \`\${dateStr}-\${hour}\`;
               
               // 检查是否已经推送过
               let lastKey = '';
@@ -153,7 +153,7 @@ jobs:
               
               // 标题：包含人生任务"贰伍"、进度、七曜、农历
               // 示例：🌅 [8/24] 7:00 贰伍 土曜 · 正月廿三
-              const title = `${timeEmoji} [${hourIndex}/24] ${hour}:00 贰伍 ${japaneseWeekDay} · ${lunarDate}`;
+              const title = \`\${timeEmoji} [\${hourIndex}/24] \${hour}:00 贰伍 \${japaneseWeekDay} · \${lunarDate}\`;
               
               // 处理宜忌
               const fitness = r.fitness ? r.fitness.split('.').join('、') : '无';
@@ -165,9 +165,9 @@ jobs:
               const content = 
                 '📊 **今日时间进度**\\n' +
                 '┌────────────────────\\n' +
-                `│ ${progressBar} ${Math.round((hourIndex/24)*100)}%\\n` +
-                `│ 第 ${hourIndex}/24 小时\\n` +
-                `│ 剩余 ${remainingHours} 小时\\n` +
+                '│ ' + progressBar + ' ' + Math.round((hourIndex/24)*100) + '%\\n' +
+                '│ 第 ' + hourIndex + '/24 小时\\n' +
+                '│ 剩余 ' + remainingHours + ' 小时\\n' +
                 '└────────────────────\\n\\n' +
                 
                 '🎯 **人生任务**\\n' +
