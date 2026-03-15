@@ -1,4 +1,4 @@
-name: 更漏子 - 时之印记
+name: 日月火水木金土
 
 on:
   schedule:
@@ -355,5 +355,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 七耀运行
+          from: 日月火水木金土
           body: file://email_content.txt
