@@ -1,4 +1,4 @@
-name: S
+name: 日月火水木土金
 
 on:
   schedule:
@@ -109,9 +109,9 @@ jobs:
             const percent = ((currentMonthIndex / totalLunarMonths) * 100).toFixed(1);
             
             return { 
-              currentMonthIndex,  // 当前是第几个农历月（如：385）
+              currentMonthIndex,  // ✅ 当前是第几个农历月（现在应该是385）
               totalMonths: totalLunarMonths,
-              monthProgress,      // 本月进度（如：72.5%）
+              monthProgress,      // ✅ 本月进度（正月廿七 ≈ 87%）
               percent            // 人生总进度
             };
           }
@@ -202,8 +202,8 @@ jobs:
                 
                 '🌙 **人生进度**\\n' +
                 '出生：1995-01-22\\n' +
-                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\\n' +
-                '本月进度：' + lifeProgress.monthProgress + '%\\n' +
+                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\\n' +  // ✅ 385
+                '本月进度：' + lifeProgress.monthProgress + '%\\n' +            // ✅ 87%
                 '总农历月：' + lifeProgress.totalMonths + '\\n' +
                 '人生已完成：' + lifeProgress.percent + '%\\n' +
                 '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\\n\\n' +
@@ -259,5 +259,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: S
+          from: 日月火水木土金
           body: file://email_content.txt
