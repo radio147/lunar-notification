@@ -1,9 +1,9 @@
-name: Lunar Calendar Notification
+name: 农历人生追踪
 
 on:
   schedule:
-    # 每小时的第0分钟执行一次（整点）
-    - cron: '0 * * * *'
+    # 每半小时执行一次：每天的0:00, 0:30, 1:00, 1:30 ... 23:30
+    - cron: '0,30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,33 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: 检出代码
         uses: actions/checkout@v3
       
-      - name: Setup Node.js
+      - name: 安装Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
       
-      - name: Install axios
+      - name: 安装依赖
         run: |
           npm init -y
-          npm install axios
+          npm install axios lunar-javascript@1.6.12
       
-      - name: Fetch Data and Push Notification
+      - name: 生成农历数据
+        id: prepare
         run: |
           node -e "
           const axios = require('axios');
           const fs = require('fs');
-          const TIANXING_KEY = 'ddb46cc2067829e975734869fdf36969'; 
-          const SERVERCHAN_KEY = 'SCT319191TZCCMQhVq74ajaCWlXYpm9FYE';
+          const Lunar = require('lunar-javascript');
+          const Solar = Lunar.Solar;
           
-          const STATE_FILE = 'last_notification.txt';
-
-          // 获取严格的北京时间
+          // 获取北京时间
           function getBeijingTime() {
             const now = new Date();
-            // 使用Intl.DateTimeFormat确保获取北京时间
             const beijingTimeStr = new Intl.DateTimeFormat('zh-CN', {
               timeZone: 'Asia/Shanghai',
               year: 'numeric',
@@ -49,7 +47,6 @@ jobs:
               hour12: false
             }).format(now);
             
-            // 解析北京时间字符串
             const [dateStr, timeStr] = beijingTimeStr.split(' ');
             const [year, month, day] = dateStr.split('/').map(Number);
             const [hour, minute, second] = timeStr.split(':').map(Number);
@@ -57,15 +54,51 @@ jobs:
             return new Date(year, month - 1, day, hour, minute, second);
           }
 
-          // 计算今天是今年的第几天
-          function getDayOfYear(date) {
-            const start = new Date(date.getFullYear(), 0, 0);
-            const diff = date - start;
-            const oneDay = 1000 * 60 * 60 * 24;
-            return Math.floor(diff / oneDay);
+          // 农历日期转数字
+          function chineseDayToNumber(dayStr) {
+            const dayMap = {
+              '初一':1,'初二':2,'初三':3,'初四':4,'初五':5,
+              '初六':6,'初七':7,'初八':8,'初九':9,'初十':10,
+              '十一':11,'十二':12,'十三':13,'十四':14,'十五':15,
+              '十六':16,'十七':17,'十八':18,'十九':19,'二十':20,
+              '廿一':21,'廿二':22,'廿三':23,'廿四':24,'廿五':25,
+              '廿六':26,'廿七':27,'廿八':28,'廿九':29,'三十':30
+            };
+            return dayMap[dayStr] || 1;
           }
 
-          // 计算今天是本周的第几天（0-6，0是周日）并返回七曜
+          // 月相Emoji
+          function getMoonEmoji(dayNum) {
+            if (dayNum === 1) return '🌑';
+            else if (dayNum <= 3) return '🌒';
+            else if (dayNum <= 7) return '🌓';
+            else if (dayNum === 8) return '🌓';
+            else if (dayNum <= 14) return '🌔';
+            else if (dayNum === 15) return '🌕';
+            else if (dayNum <= 22) return '🌖';
+            else if (dayNum === 23) return '🌗';
+            else if (dayNum <= 27) return '🌘';
+            else return '🌑';
+          }
+
+          // 人生进度
+          function calculateLifeProgress(currentDate) {
+            const birthDate = new Date('1995-01-22T00:00:00');
+            const lunarMonthLength = 29.5306;
+            const deathDate = new Date(birthDate.getFullYear() + 75, birthDate.getMonth(), birthDate.getDate());
+            
+            if (currentDate < birthDate) {
+              return { monthsPassed: 0, totalMonths: 0, percent: 0 };
+            }
+            
+            const totalLunarMonths = Math.floor((deathDate - birthDate) / (1000 * 60 * 60 * 24) / lunarMonthLength);
+            const monthsPassed = Math.floor((currentDate - birthDate) / (1000 * 60 * 60 * 24) / lunarMonthLength) + 1;
+            const percent = ((monthsPassed / totalLunarMonths) * 100).toFixed(1);
+            
+            return { monthsPassed, totalMonths: totalLunarMonths, percent };
+          }
+
+          // 七曜
           function getJapaneseDayOfWeek(date) {
             const day = date.getDay();
             const sevenLights = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
@@ -74,149 +107,114 @@ jobs:
 
           async function main() {
             try {
-              // 严格使用北京时间
               const beijingTime = getBeijingTime();
               
-              // 格式化北京时间的日期字符串（用于API请求）
               const year = beijingTime.getFullYear();
               const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
               const day = String(beijingTime.getDate()).padStart(2, '0');
               const dateStr = \`\${year}-\${month}-\${day}\`;
               
-              // 获取北京时间的小时
               const hour = beijingTime.getHours();
+              const minute = beijingTime.getMinutes();
               
-              // 计算今天是当天的第几个小时 (1-24)
-              const hourIndex = hour + 1; // 0点=1/24, 1点=2/24, ... 23点=24/24
+              // 计算是当天的第几个半小时 (1-48)
+              // 0:00 = 第1个半小时, 0:30 = 第2个, 1:00 = 第3个... 23:30 = 第48个
+              const halfHourIndex = hour * 2 + (minute === 0 ? 1 : 2);
               
-              // 计算今天是当年的第几天
-              const dayOfYear = getDayOfYear(beijingTime);
+              // 格式化时间显示
+              const timeStr = \`\${hour}:\${minute === 0 ? '00' : '30'}\`;
               
-              // 获取七曜
+              // 计算农历
+              const solar = Solar.fromDate(beijingTime);
+              const lunar = solar.getLunar();
+              
+              const lunarYear = lunar.getYearInGanZhi();
+              const lunarMonthName = lunar.getMonthInChinese();
+              const lunarDayName = lunar.getDayInChinese();
+              
+              let lunarMonthNum = lunar.getMonth();
+              if (lunarMonthNum < 0) lunarMonthNum = Math.abs(lunarMonthNum);
+              
+              const lunarDayNum = chineseDayToNumber(lunarDayName);
+              const moonEmoji = getMoonEmoji(lunarDayNum);
+              
+              const festivals = lunar.getFestivals();
+              const gregorianFestivals = solar.getFestivals();
+              const jieQi = lunar.getJieQi();
+              const shengxiao = lunar.getYearShengXiao();
+              
+              const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
-              // 构建当前时间段的key（用于去重）- 使用北京时间
-              const currentKey = \`\${dateStr}-\${hour}\`;
-              
-              // 检查是否已经推送过
-              let lastKey = '';
-              try {
-                if (fs.existsSync(STATE_FILE)) {
-                  lastKey = fs.readFileSync(STATE_FILE, 'utf8').trim();
-                }
-              } catch (e) {
-                console.log('无法读取状态文件，将继续执行');
-              }
-              
-              // 如果这个时间段已经推送过，则跳过
-              if (lastKey === currentKey) {
-                console.log('⏭️ 当前整点已推送过，跳过执行');
-                return;
-              }
-              
-              console.log('📅 北京时间: ' + beijingTime.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }));
-              console.log('📅 正在查询日期: ' + dateStr);
-              console.log('⏰ 当前进度: 第 ' + hourIndex + '/24 小时');
-              
-              const lunarRes = await axios.get('https://apis.tianapi.com/lunar/index', {
-                params: { key: TIANXING_KEY, date: dateStr }
-              });
-              
-              if (lunarRes.data.code !== 200) {
-                throw new Error('API 返回错误: ' + (lunarRes.data.msg || '未知错误'));
-              }
-              
-              const r = lunarRes.data.result;
-              
-              // 打印返回的数据，方便调试
-              console.log('✅ API返回成功');
-              console.log('农历:', r.lmonthname + r.lubarmonth + r.lunarday);
-              console.log('干支:', r.tiangandizhiyear, r.tiangandizhimonth, r.tiangandizhiday);
-              
-              // 拼接农历日期
-              const lunarDate = r.lmonthname + r.lubarmonth + r.lunarday;
-              
-              // 根据时间段选择不同的emoji
-              let timeEmoji = '🕐';
-              if (hour >= 5 && hour < 8) timeEmoji = '🌅';  // 清晨
-              else if (hour >= 8 && hour < 12) timeEmoji = '☀️'; // 上午
-              else if (hour >= 12 && hour < 14) timeEmoji = '🍚'; // 中午
-              else if (hour >= 14 && hour < 18) timeEmoji = '🌤️'; // 下午
-              else if (hour >= 18 && hour < 20) timeEmoji = '🌆'; // 傍晚
-              else if (hour >= 20 && hour < 24) timeEmoji = '🌙'; // 晚上
-              else timeEmoji = '🌃'; // 深夜
-              
-              // 生成进度条
+              // 时间进度条 (基于半小时进度)
               const progressBarLength = 20;
-              const filledLength = Math.floor((hourIndex / 24) * progressBarLength);
+              const filledLength = Math.floor((halfHourIndex / 48) * progressBarLength);
               const progressBar = '█'.repeat(filledLength) + '░'.repeat(progressBarLength - filledLength);
               
-              // 标题：包含人生任务"贰伍"、进度、七曜、农历
-              // 示例：🌅 [8/24] 7:00 贰伍 土曜 · 正月廿三
-              const title = \`\${timeEmoji} [\${hourIndex}/24] \${hour}:00 贰伍 \${japaneseWeekDay} · \${lunarDate}\`;
+              // 月进度
+              const monthProgress = (lunarDayNum / 30 * 100).toFixed(1);
+              const monthProgressBar = '█'.repeat(Math.floor(lunarDayNum/3)) + '░'.repeat(10 - Math.floor(lunarDayNum/3));
               
-              // 处理宜忌
-              const fitness = r.fitness ? r.fitness.split('.').join('、') : '无';
-              const taboo = r.taboo ? r.taboo.split('.').join('、') : '无';
+              // 年进度
+              const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 100).toFixed(1);
+              const yearProgressBar = '█'.repeat(Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2)) + '░'.repeat(10 - Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2));
               
-              // 计算当天剩余小时数
-              const remainingHours = 24 - hourIndex;
+              // 标题：显示 [x/48] 的进度
+              const title = \`\${moonEmoji} [\${halfHourIndex}/48] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
               
               const content = 
                 '📊 **今日时间进度**\\n' +
                 '┌────────────────────\\n' +
-                '│ ' + progressBar + ' ' + Math.round((hourIndex/24)*100) + '%\\n' +
-                '│ 第 ' + hourIndex + '/24 小时\\n' +
-                '│ 剩余 ' + remainingHours + ' 小时\\n' +
+                '│ ' + progressBar + ' ' + Math.round((halfHourIndex/48)*100) + '%\\n' +
+                '│ 第 ' + halfHourIndex + '/48 个半小时\\n' +
+                '│ 剩余 ' + (48 - halfHourIndex) + ' 个半小时\\n' +
                 '└────────────────────\\n\\n' +
                 
                 '🎯 **人生任务**\\n' +
                 '今日运动目标：**贰拾伍分钟 (25min)**\\n' +
                 '时刻提醒：**贰伍**\\n\\n' +
                 
+                '🌙 **人生进度**\\n' +
+                '出生：1995-01-22\\n' +
+                '第 ' + lifeProgress.monthsPassed + '/' + lifeProgress.totalMonths + ' 个农历月\\n' +
+                '已完成：' + lifeProgress.percent + '%\\n' +
+                '┌────────────\\n' +
+                '│ ' + '█'.repeat(Math.floor(lifeProgress.percent/5)) + '░'.repeat(20 - Math.floor(lifeProgress.percent/5)) + ' ' + lifeProgress.percent + '%\\n' +
+                '└────────────\\n\\n' +
+                
                 '📅 **农历信息**\\n' +
                 '公历：**' + dateStr + '** (' + japaneseWeekDay + ')\\n' +
-                '农历：**' + lunarDate + '**\\n' +
-                '干支：' + r.tiangandizhiyear + '年 ' + r.tiangandizhimonth + '月 ' + r.tiangandizhiday + '日\\n' +
-                '生肖：🐴 ' + r.shengxiao + '\\n' +
-                '冲煞：' + r.chongsha + '\\n' +
-                '胎神：' + r.taishen + '\\n\\n' +
+                '农历：**' + lunarYear + '年 ' + lunarMonthName + lunarDayName + '** ' + moonEmoji + '\\n' +
+                '生肖：🐴 ' + shengxiao + '\\n' +
+                '节气：' + (jieQi || '无') + '\\n\\n' +
                 
-                '✅ **宜**：' + fitness + '\\n' +
-                '❌ **忌**：' + taboo + '\\n\\n' +
+                '📊 **月进度**\\n' +
+                '┌────────────────────\\n' +
+                '│ ' + monthProgressBar + ' ' + monthProgress + '%\\n' +
+                '│ ' + lunarDayName + ' / 三十\\n' +
+                '└────────────────────\\n\\n' +
                 
-                '✨ **其他信息**\\n' +
-                '彭祖百忌：' + r.pengzu + '\\n' +
-                '星宿：' + r.xingsu + '\\n' +
-                '五行：' + r.wuxingnayear + ' | ' + r.wuxingnamonth + ' | ' + r.wuxingjiazi + '\\n\\n' +
+                '📊 **年进度**\\n' +
+                '┌────────────────────\\n' +
+                '│ ' + yearProgressBar + ' ' + yearProgress + '%\\n' +
+                '│ 第' + lunarMonthNum + '月 / 十二月\\n' +
+                '└────────────────────\\n\\n' +
+                
+                '🎉 **节日**\\n' +
+                '农历节日：' + (festivals.length > 0 ? festivals.join('、') : '无') + '\\n' +
+                '公历节日：' + (gregorianFestivals.length > 0 ? gregorianFestivals.join('、') : '无') + '\\n\\n' +
                 
                 '⏰ **时间标记**\\n' +
-                '推送时间：' + hour + ':00 (北京时间)\\n' +
-                '当日序号：' + hourIndex + '/24\\n' +
-                '年度第：' + dayOfYear + '天\\n' +
+                '推送时间：' + timeStr + ' (北京时间)\\n' +
+                '当日序号：' + halfHourIndex + '/48\\n' +
+                '年度第：' + Math.floor((beijingTime - new Date(beijingTime.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)) + '天\\n' +
                 '七曜：' + japaneseWeekDay + '\\n\\n' +
                 
                 '💪 _记得完成今日贰拾伍分钟运动任务！_\\n' +
-                '💫 _由 GitHub 机器人自动推送，记录时间的每一刻_';
+                '💫 _KTBFFH - 我的农历人生追踪_';
               
-              console.log('📤 正在发送通知...');
+              fs.writeFileSync('email_content.txt', title + '\\n\\n' + content);
               
-              const pushRes = await axios.post('https://sctapi.ftqq.com/' + SERVERCHAN_KEY + '.send', null, {
-                params: {
-                  title: title,
-                  desp: content,
-                  channel: 9 
-                }
-              });
-
-              if (pushRes.data.code === 0) {
-                console.log('✅ 推送成功！');
-                // 保存当前时间段key
-                fs.writeFileSync(STATE_FILE, currentKey);
-              } else {
-                throw new Error('ServerChan 返回错误: ' + pushRes.data.message);
-              }
-
             } catch (error) {
               console.error('❌ 运行失败:', error.message);
               throw error;
@@ -225,3 +223,16 @@ jobs:
 
           main();
           "
+      
+      - name: 发送邮件
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.qq.com
+          server_port: 587
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: 农历人生追踪 - [${{ github.event_name == 'schedule' && '自动' || '手动' }}]
+          to: 1203402652@qq.com
+          from: 农历人生机器人
+          body: file://email_content.txt
+          content_type: text/plain
