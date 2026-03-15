@@ -1,4 +1,4 @@
-name: 贰伍运动
+name: 七耀运行
 
 on:
   schedule:
@@ -22,7 +22,7 @@ jobs:
       - name: 安装依赖
         run: |
           npm init -y
-          npm install axios lunar-javascript@1.6.12 @actions/core
+          npm install axios lunar-javascript@1.6.12
       
       - name: 生成农历数据
         id: prepare
@@ -30,7 +30,6 @@ jobs:
           node -e "
           const axios = require('axios');
           const fs = require('fs');
-          const core = require('@actions/core');
           const Lunar = require('lunar-javascript');
           const Solar = Lunar.Solar;
           
@@ -220,9 +219,7 @@ jobs:
               
               // 保存文件
               fs.writeFileSync('email_content.txt', fullTitle + '\\n\\n' + content);
-              
-              // 设置输出变量
-              core.setOutput('subject', emailSubject);
+              fs.writeFileSync('email_subject.txt', emailSubject);
               
             } catch (error) {
               console.error('❌ 运行失败:', error.message);
@@ -233,6 +230,10 @@ jobs:
           main();
           "
       
+      - name: 读取邮件标题
+        id: read_subject
+        run: echo "subject=$(cat email_subject.txt)" >> $GITHUB_OUTPUT
+      
       - name: 发送邮件
         uses: dawidd6/action-send-mail@v4
         with:
@@ -240,7 +241,7 @@ jobs:
           server_port: 587
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: ${{steps.prepare.outputs.subject}}
+          subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
           from: 七耀运行
           body: file://email_content.txt
