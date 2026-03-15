@@ -1,4 +1,4 @@
-name: 七耀运行
+name: 贰伍运动
 
 on:
   schedule:
@@ -149,22 +149,22 @@ jobs:
               const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
-              // 日进度条 (蓝色) - 使用░和█，用文字标注颜色
+              // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
               const dayFilled = Math.floor((hourIndex / 24) * 20);
               const dayBar = '█'.repeat(dayFilled) + '░'.repeat(20 - dayFilled);
               
-              // 月进度条 (淡黄色) - 农历月进度
+              // 月进度条
               const monthProgress = (lunarDayNum / 30 * 100).toFixed(1);
               const monthFilled = Math.floor((lunarDayNum / 30) * 20);
               const monthBar = '█'.repeat(monthFilled) + '░'.repeat(20 - monthFilled);
               
-              // 年进度条 (红色) - 农历年进度
+              // 年进度条
               const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 100).toFixed(1);
               const yearFilled = Math.floor(((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 20);
               const yearBar = '█'.repeat(yearFilled) + '░'.repeat(20 - yearFilled);
               
-              // 人生进度条 (黑色)
+              // 人生进度条
               const lifeFilled = Math.floor((lifeProgress.percent / 100) * 20);
               const lifeBar = '█'.repeat(lifeFilled) + '░'.repeat(20 - lifeFilled);
               
@@ -217,8 +217,12 @@ jobs:
                 '💪 _记得完成今日贰拾伍分钟运动任务！_\\n' +
                 '💫 _KTBFFH - 我的农历人生追踪_';
               
+              // 保存文件
               fs.writeFileSync('email_content.txt', fullTitle + '\\n\\n' + content);
-              fs.writeFileSync('email_subject.txt', emailSubject);
+              
+              // 为了在下一步中获取subject，需要设置output
+              const core = require('@actions/core');
+              core.setOutput('subject', emailSubject);
               
             } catch (error) {
               console.error('❌ 运行失败:', error.message);
@@ -236,7 +240,7 @@ jobs:
           server_port: 587
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: ${{ steps.prepare.outputs.subject }}
+          subject: ${{steps.prepare.outputs.subject}}
           to: 1203402652@qq.com
           from: 七耀运行
           body: file://email_content.txt
