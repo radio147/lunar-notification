@@ -1,4 +1,4 @@
-name: 七耀运行
+name: 加油贰伍
 
 on:
   schedule:
@@ -98,9 +98,9 @@ jobs:
             return { monthsPassed, totalMonths: totalLunarMonths, percent };
           }
 
-          // 七曜
+          // 七曜：月曜(周一)、火曜(周二)、水曜(周三)、木曜(周四)、金曜(周五)、土曜(周六)、日曜(周日)
           function getJapaneseDayOfWeek(date) {
-            const day = date.getDay();
+            const day = date.getDay(); // 0=周日, 1=周一, 2=周二, 3=周三, 4=周四, 5=周五, 6=周六
             const sevenLights = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
             return sevenLights[day];
           }
@@ -113,10 +113,6 @@ jobs:
               const month = String(beijingTime.getMonth() + 1).padStart(2, '0');
               const day = String(beijingTime.getDate()).padStart(2, '0');
               const dateStr = \`\${year}-\${month}-\${day}\`;
-              
-              // 获取中文月日
-              const monthChinese = beijingTime.getMonth() + 1;
-              const dayChinese = beijingTime.getDate();
               
               const hour = beijingTime.getHours();
               const minute = beijingTime.getMinutes();
@@ -171,8 +167,8 @@ jobs:
               // 完整标题（用于邮件正文开头）
               const fullTitle = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
               
-              // 邮件标题
-              const emailSubject = \`今天是\${monthChinese}月\${dayChinese}日。\${japaneseWeekDay}。 记得贰伍\`;
+              // 邮件标题：农历日期 + 七曜 + 贰伍
+              const emailSubject = \`今天是\${lunarMonthName}\${lunarDayName}。\${japaneseWeekDay}。 记得贰伍\`;
               
               const content = 
                 '📊 **今日时间进度**\\n' +
