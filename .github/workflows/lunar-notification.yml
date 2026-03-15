@@ -117,9 +117,10 @@ jobs:
               const hour = beijingTime.getHours();
               const minute = beijingTime.getMinutes();
               
-              // 计算是当天的第几个半小时 (1-48)
-              // 0:00 = 第1个半小时, 0:30 = 第2个, 1:00 = 第3个... 23:30 = 第48个
-              const halfHourIndex = hour * 2 + (minute === 0 ? 1 : 2);
+              // 计算是当天的第几个小时 (1-24)
+              // 整点：hour + 1
+              // 半点：显示当前小时，但标记为半点
+              const hourIndex = hour + 1;
               
               // 格式化时间显示
               const timeStr = \`\${hour}:\${minute === 0 ? '00' : '30'}\`;
@@ -146,9 +147,9 @@ jobs:
               const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
-              // 时间进度条 (基于半小时进度)
+              // 时间进度条 (基于24小时)
               const progressBarLength = 20;
-              const filledLength = Math.floor((halfHourIndex / 48) * progressBarLength);
+              const filledLength = Math.floor((hourIndex / 24) * progressBarLength);
               const progressBar = '█'.repeat(filledLength) + '░'.repeat(progressBarLength - filledLength);
               
               // 月进度
@@ -159,15 +160,15 @@ jobs:
               const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 100).toFixed(1);
               const yearProgressBar = '█'.repeat(Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2)) + '░'.repeat(10 - Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2));
               
-              // 标题：显示 [x/48] 的进度
-              const title = \`\${moonEmoji} [\${halfHourIndex}/48] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
+              // 标题：显示 [x/24] 的进度
+              const title = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
               
               const content = 
                 '📊 **今日时间进度**\\n' +
                 '┌────────────────────\\n' +
-                '│ ' + progressBar + ' ' + Math.round((halfHourIndex/48)*100) + '%\\n' +
-                '│ 第 ' + halfHourIndex + '/48 个半小时\\n' +
-                '│ 剩余 ' + (48 - halfHourIndex) + ' 个半小时\\n' +
+                '│ ' + progressBar + ' ' + Math.round((hourIndex/24)*100) + '%\\n' +
+                '│ 第 ' + hourIndex + '/24 小时\\n' +
+                '│ 剩余 ' + (24 - hourIndex) + ' 小时\\n' +
                 '└────────────────────\\n\\n' +
                 
                 '🎯 **人生任务**\\n' +
@@ -206,7 +207,7 @@ jobs:
                 
                 '⏰ **时间标记**\\n' +
                 '推送时间：' + timeStr + ' (北京时间)\\n' +
-                '当日序号：' + halfHourIndex + '/48\\n' +
+                '当日序号：' + hourIndex + '/24\\n' +
                 '年度第：' + Math.floor((beijingTime - new Date(beijingTime.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)) + '天\\n' +
                 '七曜：' + japaneseWeekDay + '\\n\\n' +
                 
