@@ -1,9 +1,104 @@
-name: 日月火水木金土
+name: 更漏子 - 时之印记
 
 on:
   schedule:
-    # 每半小时执行一次：每天的0:00, 0:30, 1:00, 1:30 ... 23:30
-    - cron: '0,30 * * * *'
+    # 北京时间每半小时一次（换算成UTC时间）
+    # 00:00 = 16:00 UTC
+    - cron: '0 16 * * *'
+    # 00:30 = 16:30 UTC
+    - cron: '30 16 * * *'
+    # 01:00 = 17:00 UTC
+    - cron: '0 17 * * *'
+    # 01:30 = 17:30 UTC
+    - cron: '30 17 * * *'
+    # 02:00 = 18:00 UTC
+    - cron: '0 18 * * *'
+    # 02:30 = 18:30 UTC
+    - cron: '30 18 * * *'
+    # 03:00 = 19:00 UTC
+    - cron: '0 19 * * *'
+    # 03:30 = 19:30 UTC
+    - cron: '30 19 * * *'
+    # 04:00 = 20:00 UTC
+    - cron: '0 20 * * *'
+    # 04:30 = 20:30 UTC
+    - cron: '30 20 * * *'
+    # 05:00 = 21:00 UTC
+    - cron: '0 21 * * *'
+    # 05:30 = 21:30 UTC
+    - cron: '30 21 * * *'
+    # 06:00 = 22:00 UTC
+    - cron: '0 22 * * *'
+    # 06:30 = 22:30 UTC
+    - cron: '30 22 * * *'
+    # 07:00 = 23:00 UTC
+    - cron: '0 23 * * *'
+    # 07:30 = 23:30 UTC
+    - cron: '30 23 * * *'
+    # 08:00 = 00:00 UTC
+    - cron: '0 0 * * *'
+    # 08:30 = 00:30 UTC
+    - cron: '30 0 * * *'
+    # 09:00 = 01:00 UTC
+    - cron: '0 1 * * *'
+    # 09:30 = 01:30 UTC
+    - cron: '30 1 * * *'
+    # 10:00 = 02:00 UTC
+    - cron: '0 2 * * *'
+    # 10:30 = 02:30 UTC
+    - cron: '30 2 * * *'
+    # 11:00 = 03:00 UTC
+    - cron: '0 3 * * *'
+    # 11:30 = 03:30 UTC
+    - cron: '30 3 * * *'
+    # 12:00 = 04:00 UTC
+    - cron: '0 4 * * *'
+    # 12:30 = 04:30 UTC
+    - cron: '30 4 * * *'
+    # 13:00 = 05:00 UTC
+    - cron: '0 5 * * *'
+    # 13:30 = 05:30 UTC
+    - cron: '30 5 * * *'
+    # 14:00 = 06:00 UTC
+    - cron: '0 6 * * *'
+    # 14:30 = 06:30 UTC
+    - cron: '30 6 * * *'
+    # 15:00 = 07:00 UTC
+    - cron: '0 7 * * *'
+    # 15:30 = 07:30 UTC
+    - cron: '30 7 * * *'
+    # 16:00 = 08:00 UTC
+    - cron: '0 8 * * *'
+    # 16:30 = 08:30 UTC
+    - cron: '30 8 * * *'
+    # 17:00 = 09:00 UTC
+    - cron: '0 9 * * *'
+    # 17:30 = 09:30 UTC
+    - cron: '30 9 * * *'
+    # 18:00 = 10:00 UTC
+    - cron: '0 10 * * *'
+    # 18:30 = 10:30 UTC
+    - cron: '30 10 * * *'
+    # 19:00 = 11:00 UTC
+    - cron: '0 11 * * *'
+    # 19:30 = 11:30 UTC
+    - cron: '30 11 * * *'
+    # 20:00 = 12:00 UTC
+    - cron: '0 12 * * *'
+    # 20:30 = 12:30 UTC
+    - cron: '30 12 * * *'
+    # 21:00 = 13:00 UTC
+    - cron: '0 13 * * *'
+    # 21:30 = 13:30 UTC
+    - cron: '30 13 * * *'
+    # 22:00 = 14:00 UTC
+    - cron: '0 14 * * *'
+    # 22:30 = 14:30 UTC
+    - cron: '30 14 * * *'
+    # 23:00 = 15:00 UTC
+    - cron: '0 15 * * *'
+    # 23:30 = 15:30 UTC
+    - cron: '30 15 * * *'
   workflow_dispatch:
 
 jobs:
@@ -82,45 +177,21 @@ jobs:
             else return '🌑';
           }
 
-          // ✅ 人生进度 - 最终修正版
+          // 人生进度 - 最终修正版
           function calculateLifeProgress(currentDate) {
             const birthDate = new Date('1995-01-22T00:00:00');
             const lunarMonthLength = 29.5306;
             const deathDate = new Date(birthDate.getFullYear() + 75, birthDate.getMonth(), birthDate.getDate());
             
-            // 从出生到现在的总天数
             const daysPassed = (currentDate - birthDate) / (1000 * 60 * 60 * 24);
-            
-            // 已经度过的完整农历月数（向下取整）
             const completeMonthsPassed = Math.floor(daysPassed / lunarMonthLength);
-            
-            // 当前正在经历的是第几个农历月
-            // 出生当天：completeMonthsPassed=0 → 第1个月
-            // 现在：completeMonthsPassed应该是384 → 第385个月 ✅
             const currentMonthIndex = completeMonthsPassed + 1;
-            
-            // 这个农历月已经过去了多少天
             const daysInCurrentMonth = daysPassed % lunarMonthLength;
-            
-            // 这个农历月的进度百分比
             const monthProgress = (daysInCurrentMonth / lunarMonthLength * 100).toFixed(1);
-            
-            // 总农历月数
             const totalLunarMonths = Math.floor((deathDate - birthDate) / (1000 * 60 * 60 * 24) / lunarMonthLength);
-            
-            // 人生总进度
             const percent = ((currentMonthIndex / totalLunarMonths) * 100).toFixed(1);
             
-            // 调试日志
-            console.log(\`📊 人生进度计算：
-              出生日期: 1995-01-22
-              当前日期: \${currentDate.toISOString().split('T')[0]}
-              已过天数: \${daysPassed.toFixed(2)}天
-              完整月数: \${completeMonthsPassed}
-              当前月数: 第\${currentMonthIndex}个月 ✅
-              本月进度: \${monthProgress}%
-              总月数: \${totalLunarMonths}
-              人生进度: \${percent}%\`);
+            console.log(\`📊 人生进度: 第\${currentMonthIndex}个月\`);
             
             return { 
               currentMonthIndex,
@@ -145,7 +216,6 @@ jobs:
               const month = LunarMonth.fromYmd(lunarYear, absMonth, isLeap);
               return month.getDayCount();
             } catch (e) {
-              console.log('获取农历月天数失败，使用默认30天', e);
               return 30;
             }
           }
@@ -180,7 +250,6 @@ jobs:
               const lunarDayNum = chineseDayToNumber(lunarDayName);
               const moonEmoji = getMoonEmoji(lunarDayNum);
               
-              // 获取这个农历月的准确天数
               const monthDays = getLunarMonthDays(lunarYear, lunarMonth);
               
               const festivals = lunar.getFestivals();
@@ -188,7 +257,6 @@ jobs:
               const jieQi = lunar.getJieQi();
               const shengxiao = lunar.getYearShengXiao();
               
-              // ✅ 使用修正后的人生进度
               const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
@@ -231,7 +299,7 @@ jobs:
                 
                 '🌙 **人生进度**\\n' +
                 '出生：1995-01-22\\n' +
-                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月 ✅\\n' +
+                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\\n' +
                 '本月进度：' + lifeProgress.monthProgress + '%\\n' +
                 '总农历月：' + lifeProgress.totalMonths + '\\n' +
                 '人生已完成：' + lifeProgress.percent + '%\\n' +
@@ -262,7 +330,6 @@ jobs:
                 '💪 _记得完成今日贰拾伍分钟运动任务！_\\n' +
                 '💫 _KTBFFH - 我的农历人生追踪_';
               
-              // 保存文件
               fs.writeFileSync('email_content.txt', fullTitle + '\\n\\n' + content);
               fs.writeFileSync('email_subject.txt', emailSubject);
               
@@ -288,5 +355,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 日月火水木金土
+          from: 七耀运行
           body: file://email_content.txt
