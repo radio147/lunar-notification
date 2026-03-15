@@ -1,4 +1,4 @@
-name: 更漏子 - 时之印记
+name: 日月火水木土金
 
 on:
   schedule:
@@ -82,7 +82,7 @@ jobs:
             else return '🌑';
           }
 
-          // 人生进度 - 修正版
+          // 人生进度
           function calculateLifeProgress(currentDate) {
             const birthDate = new Date('1995-01-22T00:00:00');
             const lunarMonthLength = 29.5306;
@@ -111,10 +111,21 @@ jobs:
             return sevenLights[day];
           }
 
-          // ✅ 新增：获取农历月的准确天数
-          function getLunarMonthDays(lunarYear, lunarMonth, isLeap) {
-            const month = LunarMonth.fromYmd(lunarYear, lunarMonth, isLeap);
-            return month.getDayCount();
+          // ✅ 获取农历月的准确天数（修复版）
+          function getLunarMonthDays(lunarYear, lunarMonth) {
+            try {
+              // 处理闰月：lunarMonth 可能是负数，需要取绝对值
+              const absMonth = Math.abs(lunarMonth);
+              // 判断是否是闰月：lunarMonth < 0 表示闰月
+              const isLeap = lunarMonth < 0;
+              
+              // 创建 LunarMonth 对象
+              const month = LunarMonth.fromYmd(lunarYear, absMonth, isLeap);
+              return month.getDayCount();
+            } catch (e) {
+              console.log('获取农历月天数失败，使用默认30天', e);
+              return 30; // 降级方案
+            }
           }
 
           async function main() {
@@ -137,19 +148,19 @@ jobs:
               
               const lunarYear = lunar.getYear();
               const lunarYearGanZhi = lunar.getYearInGanZhi();
-              const lunarMonth = lunar.getMonth();
+              const lunarMonth = lunar.getMonth();  // 可能是负数（闰月）
               const lunarMonthName = lunar.getMonthInChinese();
               const lunarDayName = lunar.getDayInChinese();
-              const isLeap = lunar.isLeap();
               
-              let lunarMonthNum = lunarMonth;
-              if (lunarMonthNum < 0) lunarMonthNum = Math.abs(lunarMonthNum);
+              // ✅ 判断是否是闰月：lunarMonth < 0 表示闰月
+              const isLeap = lunarMonth < 0;
+              const lunarMonthNum = Math.abs(lunarMonth);
               
               const lunarDayNum = chineseDayToNumber(lunarDayName);
               const moonEmoji = getMoonEmoji(lunarDayNum);
               
               // ✅ 获取这个农历月的准确天数
-              const monthDays = getLunarMonthDays(lunarYear, lunarMonthNum, isLeap);
+              const monthDays = getLunarMonthDays(lunarYear, lunarMonth);
               
               const festivals = lunar.getFestivals();
               const gregorianFestivals = solar.getFestivals();
@@ -169,7 +180,7 @@ jobs:
               const monthFilled = Math.floor((lunarDayNum / monthDays) * 20);
               const monthBar = '█'.repeat(monthFilled) + '░'.repeat(20 - monthFilled);
               
-              // 年进度条
+              // 年进度条（考虑闰月）
               const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / monthDays) / 12) * 100).toFixed(1);
               const yearFilled = Math.floor(((lunarMonthNum - 1 + lunarDayNum / monthDays) / 12) * 20);
               const yearBar = '█'.repeat(yearFilled) + '░'.repeat(20 - yearFilled);
@@ -179,10 +190,10 @@ jobs:
               const lifeBar = '█'.repeat(lifeFilled) + '░'.repeat(20 - lifeFilled);
               
               // 完整标题
-              const fullTitle = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
+              const fullTitle = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${isLeap ? '闰' : ''}\${lunarMonthName}\${lunarDayName}\`;
               
               // 邮件标题
-              const emailSubject = \`今天是\${lunarMonthName}\${lunarDayName}。\${japaneseWeekDay}。 记得贰伍\`;
+              const emailSubject = \`今天是\${isLeap ? '闰' : ''}\${lunarMonthName}\${lunarDayName}。\${japaneseWeekDay}。 记得贰伍\`;
               
               const content = 
                 '📊 **今日时间进度**\\n' +
@@ -255,5 +266,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 七耀运行
+          from: 日月火水木土金
           body: file://email_content.txt
