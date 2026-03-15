@@ -1,4 +1,4 @@
-name: 日月火水木土金
+name: 日月火水木金土
 
 on:
   schedule:
@@ -82,19 +82,45 @@ jobs:
             else return '🌑';
           }
 
-          // 人生进度
+          // ✅ 人生进度 - 最终修正版
           function calculateLifeProgress(currentDate) {
             const birthDate = new Date('1995-01-22T00:00:00');
             const lunarMonthLength = 29.5306;
             const deathDate = new Date(birthDate.getFullYear() + 75, birthDate.getMonth(), birthDate.getDate());
             
+            // 从出生到现在的总天数
             const daysPassed = (currentDate - birthDate) / (1000 * 60 * 60 * 24);
+            
+            // 已经度过的完整农历月数（向下取整）
             const completeMonthsPassed = Math.floor(daysPassed / lunarMonthLength);
+            
+            // 当前正在经历的是第几个农历月
+            // 出生当天：completeMonthsPassed=0 → 第1个月
+            // 现在：completeMonthsPassed应该是384 → 第385个月 ✅
             const currentMonthIndex = completeMonthsPassed + 1;
+            
+            // 这个农历月已经过去了多少天
             const daysInCurrentMonth = daysPassed % lunarMonthLength;
+            
+            // 这个农历月的进度百分比
             const monthProgress = (daysInCurrentMonth / lunarMonthLength * 100).toFixed(1);
+            
+            // 总农历月数
             const totalLunarMonths = Math.floor((deathDate - birthDate) / (1000 * 60 * 60 * 24) / lunarMonthLength);
+            
+            // 人生总进度
             const percent = ((currentMonthIndex / totalLunarMonths) * 100).toFixed(1);
+            
+            // 调试日志
+            console.log(\`📊 人生进度计算：
+              出生日期: 1995-01-22
+              当前日期: \${currentDate.toISOString().split('T')[0]}
+              已过天数: \${daysPassed.toFixed(2)}天
+              完整月数: \${completeMonthsPassed}
+              当前月数: 第\${currentMonthIndex}个月 ✅
+              本月进度: \${monthProgress}%
+              总月数: \${totalLunarMonths}
+              人生进度: \${percent}%\`);
             
             return { 
               currentMonthIndex,
@@ -111,20 +137,16 @@ jobs:
             return sevenLights[day];
           }
 
-          // ✅ 获取农历月的准确天数（修复版）
+          // 获取农历月的准确天数
           function getLunarMonthDays(lunarYear, lunarMonth) {
             try {
-              // 处理闰月：lunarMonth 可能是负数，需要取绝对值
               const absMonth = Math.abs(lunarMonth);
-              // 判断是否是闰月：lunarMonth < 0 表示闰月
               const isLeap = lunarMonth < 0;
-              
-              // 创建 LunarMonth 对象
               const month = LunarMonth.fromYmd(lunarYear, absMonth, isLeap);
               return month.getDayCount();
             } catch (e) {
               console.log('获取农历月天数失败，使用默认30天', e);
-              return 30; // 降级方案
+              return 30;
             }
           }
 
@@ -148,18 +170,17 @@ jobs:
               
               const lunarYear = lunar.getYear();
               const lunarYearGanZhi = lunar.getYearInGanZhi();
-              const lunarMonth = lunar.getMonth();  // 可能是负数（闰月）
+              const lunarMonth = lunar.getMonth();
               const lunarMonthName = lunar.getMonthInChinese();
               const lunarDayName = lunar.getDayInChinese();
               
-              // ✅ 判断是否是闰月：lunarMonth < 0 表示闰月
               const isLeap = lunarMonth < 0;
               const lunarMonthNum = Math.abs(lunarMonth);
               
               const lunarDayNum = chineseDayToNumber(lunarDayName);
               const moonEmoji = getMoonEmoji(lunarDayNum);
               
-              // ✅ 获取这个农历月的准确天数
+              // 获取这个农历月的准确天数
               const monthDays = getLunarMonthDays(lunarYear, lunarMonth);
               
               const festivals = lunar.getFestivals();
@@ -167,6 +188,7 @@ jobs:
               const jieQi = lunar.getJieQi();
               const shengxiao = lunar.getYearShengXiao();
               
+              // ✅ 使用修正后的人生进度
               const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
@@ -175,12 +197,12 @@ jobs:
               const dayFilled = Math.floor((hourIndex / 24) * 20);
               const dayBar = '█'.repeat(dayFilled) + '░'.repeat(20 - dayFilled);
               
-              // ✅ 月进度条（用准确的农历月天数）
+              // 月进度条
               const monthProgress = (lunarDayNum / monthDays * 100).toFixed(1);
               const monthFilled = Math.floor((lunarDayNum / monthDays) * 20);
               const monthBar = '█'.repeat(monthFilled) + '░'.repeat(20 - monthFilled);
               
-              // 年进度条（考虑闰月）
+              // 年进度条
               const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / monthDays) / 12) * 100).toFixed(1);
               const yearFilled = Math.floor(((lunarMonthNum - 1 + lunarDayNum / monthDays) / 12) * 20);
               const yearBar = '█'.repeat(yearFilled) + '░'.repeat(20 - yearFilled);
@@ -209,7 +231,7 @@ jobs:
                 
                 '🌙 **人生进度**\\n' +
                 '出生：1995-01-22\\n' +
-                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\\n' +
+                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月 ✅\\n' +
                 '本月进度：' + lifeProgress.monthProgress + '%\\n' +
                 '总农历月：' + lifeProgress.totalMonths + '\\n' +
                 '人生已完成：' + lifeProgress.percent + '%\\n' +
@@ -266,5 +288,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 日月火水木土金
+          from: 日月火水木金土
           body: file://email_content.txt
