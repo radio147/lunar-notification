@@ -1,4 +1,4 @@
-name: 农历人生追踪
+name: 七耀运行
 
 on:
   schedule:
@@ -12,10 +12,10 @@ jobs:
     
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: 安装Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
       
@@ -114,12 +114,14 @@ jobs:
               const day = String(beijingTime.getDate()).padStart(2, '0');
               const dateStr = \`\${year}-\${month}-\${day}\`;
               
+              // 获取中文月日
+              const monthChinese = beijingTime.getMonth() + 1;
+              const dayChinese = beijingTime.getDate();
+              
               const hour = beijingTime.getHours();
               const minute = beijingTime.getMinutes();
               
               // 计算是当天的第几个小时 (1-24)
-              // 整点：hour + 1
-              // 半点：显示当前小时，但标记为半点
               const hourIndex = hour + 1;
               
               // 格式化时间显示
@@ -147,26 +149,35 @@ jobs:
               const lifeProgress = calculateLifeProgress(beijingTime);
               const japaneseWeekDay = getJapaneseDayOfWeek(beijingTime);
               
-              // 时间进度条 (基于24小时)
-              const progressBarLength = 20;
-              const filledLength = Math.floor((hourIndex / 24) * progressBarLength);
-              const progressBar = '█'.repeat(filledLength) + '░'.repeat(progressBarLength - filledLength);
+              // 日进度条 (蓝色) - 使用░和█，用文字标注颜色
+              const dayProgress = (hourIndex / 24 * 100).toFixed(1);
+              const dayFilled = Math.floor((hourIndex / 24) * 20);
+              const dayBar = '█'.repeat(dayFilled) + '░'.repeat(20 - dayFilled);
               
-              // 月进度
+              // 月进度条 (淡黄色) - 农历月进度
               const monthProgress = (lunarDayNum / 30 * 100).toFixed(1);
-              const monthProgressBar = '█'.repeat(Math.floor(lunarDayNum/3)) + '░'.repeat(10 - Math.floor(lunarDayNum/3));
+              const monthFilled = Math.floor((lunarDayNum / 30) * 20);
+              const monthBar = '█'.repeat(monthFilled) + '░'.repeat(20 - monthFilled);
               
-              // 年进度
+              // 年进度条 (红色) - 农历年进度
               const yearProgress = (((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 100).toFixed(1);
-              const yearProgressBar = '█'.repeat(Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2)) + '░'.repeat(10 - Math.floor((lunarMonthNum - 1 + lunarDayNum/30)/1.2));
+              const yearFilled = Math.floor(((lunarMonthNum - 1 + lunarDayNum / 30) / 12) * 20);
+              const yearBar = '█'.repeat(yearFilled) + '░'.repeat(20 - yearFilled);
               
-              // 标题：显示 [x/24] 的进度
-              const title = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
+              // 人生进度条 (黑色)
+              const lifeFilled = Math.floor((lifeProgress.percent / 100) * 20);
+              const lifeBar = '█'.repeat(lifeFilled) + '░'.repeat(20 - lifeFilled);
+              
+              // 完整标题（用于邮件正文开头）
+              const fullTitle = \`\${moonEmoji} [\${hourIndex}/24] \${timeStr} 贰伍 \${japaneseWeekDay} · \${lunarMonthName}\${lunarDayName}\`;
+              
+              // 邮件标题
+              const emailSubject = \`今天是\${monthChinese}月\${dayChinese}日。\${japaneseWeekDay}。 记得贰伍\`;
               
               const content = 
                 '📊 **今日时间进度**\\n' +
                 '┌────────────────────\\n' +
-                '│ ' + progressBar + ' ' + Math.round((hourIndex/24)*100) + '%\\n' +
+                '│ ' + dayBar + ' ' + dayProgress + '%\\n' +
                 '│ 第 ' + hourIndex + '/24 小时\\n' +
                 '│ 剩余 ' + (24 - hourIndex) + ' 小时\\n' +
                 '└────────────────────\\n\\n' +
@@ -179,9 +190,7 @@ jobs:
                 '出生：1995-01-22\\n' +
                 '第 ' + lifeProgress.monthsPassed + '/' + lifeProgress.totalMonths + ' 个农历月\\n' +
                 '已完成：' + lifeProgress.percent + '%\\n' +
-                '┌────────────\\n' +
-                '│ ' + '█'.repeat(Math.floor(lifeProgress.percent/5)) + '░'.repeat(20 - Math.floor(lifeProgress.percent/5)) + ' ' + lifeProgress.percent + '%\\n' +
-                '└────────────\\n\\n' +
+                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\\n\\n' +
                 
                 '📅 **农历信息**\\n' +
                 '公历：**' + dateStr + '** (' + japaneseWeekDay + ')\\n' +
@@ -189,17 +198,11 @@ jobs:
                 '生肖：🐴 ' + shengxiao + '\\n' +
                 '节气：' + (jieQi || '无') + '\\n\\n' +
                 
-                '📊 **月进度**\\n' +
-                '┌────────────────────\\n' +
-                '│ ' + monthProgressBar + ' ' + monthProgress + '%\\n' +
-                '│ ' + lunarDayName + ' / 三十\\n' +
-                '└────────────────────\\n\\n' +
-                
-                '📊 **年进度**\\n' +
-                '┌────────────────────\\n' +
-                '│ ' + yearProgressBar + ' ' + yearProgress + '%\\n' +
-                '│ 第' + lunarMonthNum + '月 / 十二月\\n' +
-                '└────────────────────\\n\\n' +
+                '📊 **进度一览**\\n' +
+                '日：' + dayBar + ' ' + dayProgress + '%\\n' +
+                '月：' + monthBar + ' ' + monthProgress + '%\\n' +
+                '年：' + yearBar + ' ' + yearProgress + '%\\n' +
+                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\\n\\n' +
                 
                 '🎉 **节日**\\n' +
                 '农历节日：' + (festivals.length > 0 ? festivals.join('、') : '无') + '\\n' +
@@ -214,7 +217,8 @@ jobs:
                 '💪 _记得完成今日贰拾伍分钟运动任务！_\\n' +
                 '💫 _KTBFFH - 我的农历人生追踪_';
               
-              fs.writeFileSync('email_content.txt', title + '\\n\\n' + content);
+              fs.writeFileSync('email_content.txt', fullTitle + '\\n\\n' + content);
+              fs.writeFileSync('email_subject.txt', emailSubject);
               
             } catch (error) {
               console.error('❌ 运行失败:', error.message);
@@ -226,14 +230,13 @@ jobs:
           "
       
       - name: 发送邮件
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v4
         with:
           server_address: smtp.qq.com
           server_port: 587
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: 农历人生追踪 - [${{ github.event_name == 'schedule' && '自动' || '手动' }}]
+          subject: ${{ steps.prepare.outputs.subject }}
           to: 1203402652@qq.com
-          from: 农历人生机器人
+          from: 七耀运行
           body: file://email_content.txt
-          content_type: text/plain
