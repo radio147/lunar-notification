@@ -1,4 +1,4 @@
-name: 日月火水木金土
+name: 时间
 
 on:
   schedule:
@@ -281,13 +281,12 @@ jobs:
               const lifeFilled = Math.floor((lifeProgress.percent / 100) * 20);
               const lifeBar = '█'.repeat(lifeFilled) + '░'.repeat(20 - lifeFilled);
               
-              // ========== 计算农历年度第几天 ==========
-              const lunarYearStart = Lunar.fromYmd(lunarYear, 1, 1);
-              const startDate = new Date(lunarYearStart.getSolar().getYear(), 
-                                         lunarYearStart.getSolar().getMonth() - 1, 
-                                         lunarYearStart.getSolar().getDay());
+              // ========== 计算农历年度第几天（修复版） ==========
+              const lunarYearStart = Lunar.Lunar.fromYmd(lunarYear, 1, 1);
+              const startSolar = lunarYearStart.getSolar();
+              const startDate = new Date(startSolar.getYear(), startSolar.getMonth() - 1, startSolar.getDay());
               const dayOfLunarYear = Math.floor((beijingTime - startDate) / (1000 * 60 * 60 * 24)) + 1;
-              // ======================================
+              // =================================================
               
               // ========== 新标题格式：日：十五—木—贰伍 ==========
               const fullTitle = \`日：\${lunarDayName}—\${sevenDaysFirstChar}—贰伍\`;
@@ -364,5 +363,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 日月火水木金土
+          from: 时间
           body: file://email_content.txt
