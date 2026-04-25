@@ -262,6 +262,18 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
+              // 根据七曜首字确定任务关键词
+              const taskKeywordMap = {
+                '日': '活子时',
+                '月': '肠空',
+                '火': '贰伍',
+                '水': '收拾一切',
+                '木': '书籍相关',
+                '金': '书籍相关',
+                '土': '书籍相关'
+              };
+              const taskKeyword = taskKeywordMap[sevenDaysFirstChar] || '贰伍';
+              
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
               const dayFilled = Math.floor((hourIndex / 24) * 20);
@@ -288,57 +300,57 @@ jobs:
               const dayOfLunarYear = Math.floor((beijingTime - startDate) / (1000 * 60 * 60 * 24)) + 1;
               // =================================================
               
-              // ========== 新标题格式：日：十五—木—贰伍 ==========
-              const fullTitle = \`日：\${lunarDayName}—\${sevenDaysFirstChar}—贰伍\`;
-              const emailSubject = \`日：\${lunarDayName}—\${sevenDaysFirstChar}—贰伍\`;
+              // ========== 新标题格式：日：十五—木—任务关键词 ==========
+              const fullTitle = \`日：\${lunarDayName}—\${sevenDaysFirstChar}—\${taskKeyword}\`;
+              const emailSubject = \`日：\${lunarDayName}—\${sevenDaysFirstChar}—\${taskKeyword}\`;
               // ================================================
               
               const content = 
-                '📊 **今日时间进度**\\n' +
-                '┌────────────────────\\n' +
-                '│ ' + dayBar + ' ' + dayProgress + '%\\n' +
-                '│ 第 ' + hourIndex + '/24 小时\\n' +
-                '│ 剩余 ' + (24 - hourIndex) + ' 小时\\n' +
-                '└────────────────────\\n\\n' +
+                '📊 **今日时间进度**\n' +
+                '┌────────────────────\n' +
+                '│ ' + dayBar + ' ' + dayProgress + '%\n' +
+                '│ 第 ' + hourIndex + '/24 小时\n' +
+                '│ 剩余 ' + (24 - hourIndex) + ' 小时\n' +
+                '└────────────────────\n\n' +
                 
-                '🎯 **人生任务**\\n' +
-                '今日运动目标：**贰拾伍分钟 (25min)**\\n' +
-                '时刻提醒：**贰伍**\\n\\n' +
+                '🎯 **人生任务**\n' +
+                '今日目标：**' + taskKeyword + '**\n' +
+                '时刻提醒：**' + taskKeyword + '**\n\n' +
                 
-                '🌙 **人生进度**\\n' +
-                '出生：1995-01-22\\n' +
-                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\\n' +
-                '本月进度：' + lifeProgress.monthProgress + '%\\n' +
-                '总农历月：' + lifeProgress.totalMonths + '\\n' +
-                '人生已完成：' + lifeProgress.percent + '%\\n' +
-                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\\n\\n' +
+                '🌙 **人生进度**\n' +
+                '出生：1995-01-22\n' +
+                '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\n' +
+                '本月进度：' + lifeProgress.monthProgress + '%\n' +
+                '总农历月：' + lifeProgress.totalMonths + '\n' +
+                '人生已完成：' + lifeProgress.percent + '%\n' +
+                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\n\n' +
                 
-                '📅 **农历信息**\\n' +
-                '公历：**' + dateStr + '** (' + japaneseWeekDay + ')\\n' +
-                '农历：**' + lunarYearGanZhi + '年 ' + (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '** ' + moonEmoji + '\\n' +
-                '生肖：🐴 ' + shengxiao + '\\n' +
-                '节气：' + (jieQi || '无') + '\\n\\n' +
+                '📅 **农历信息**\n' +
+                '公历：**' + dateStr + '** (' + japaneseWeekDay + ')\n' +
+                '农历：**' + lunarYearGanZhi + '年 ' + (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '** ' + moonEmoji + '\n' +
+                '生肖：🐴 ' + shengxiao + '\n' +
+                '节气：' + (jieQi || '无') + '\n\n' +
                 
-                '📊 **进度一览**\\n' +
-                '日：' + dayBar + ' ' + dayProgress + '%\\n' +
-                '月：' + monthBar + ' ' + monthProgress + '% (第' + lunarDayNum + '/' + monthDays + '天)\\n' +
-                '年：' + yearBar + ' ' + yearProgress + '%\\n' +
-                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\\n\\n' +
-                '农历年第：' + dayOfLunarYear + '天\\n\\n' +
+                '📊 **进度一览**\n' +
+                '日：' + dayBar + ' ' + dayProgress + '%\n' +
+                '月：' + monthBar + ' ' + monthProgress + '% (第' + lunarDayNum + '/' + monthDays + '天)\n' +
+                '年：' + yearBar + ' ' + yearProgress + '%\n' +
+                '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\n\n' +
+                '农历年第：' + dayOfLunarYear + '天\n\n' +
                 
-                '🎉 **节日**\\n' +
-                '农历节日：' + (festivals.length > 0 ? festivals.join('、') : '无') + '\\n' +
-                '公历节日：' + (gregorianFestivals.length > 0 ? gregorianFestivals.join('、') : '无') + '\\n\\n' +
+                '🎉 **节日**\n' +
+                '农历节日：' + (festivals.length > 0 ? festivals.join('、') : '无') + '\n' +
+                '公历节日：' + (gregorianFestivals.length > 0 ? gregorianFestivals.join('、') : '无') + '\n\n' +
                 
-                '⏰ **时间标记**\\n' +
-                '推送时间：' + timeStr + ' (北京时间)\\n' +
-                '当日序号：' + hourIndex + '/24\\n' +
-                '七曜：' + japaneseWeekDay + '\\n\\n' +
+                '⏰ **时间标记**\n' +
+                '推送时间：' + timeStr + ' (北京时间)\n' +
+                '当日序号：' + hourIndex + '/24\n' +
+                '七曜：' + japaneseWeekDay + '\n\n' +
                 
-                '💪 _记得完成今日贰拾伍分钟运动任务！_\\n' +
+                '💪 _记得完成今日任务！_\n' +
                 '💫 _KTBFFH - 我的农历人生追踪_';
               
-              fs.writeFileSync('email_content.txt', fullTitle + '\\n\\n' + content);
+              fs.writeFileSync('email_content.txt', fullTitle + '\n\n' + content);
               fs.writeFileSync('email_subject.txt', emailSubject);
               
             } catch (error) {
