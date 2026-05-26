@@ -1,4 +1,4 @@
-name: I OWN THIS DAY ONLY. PLEASE!
+name: I OWN THIS DAY
 
 on:
   schedule:
@@ -262,9 +262,11 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
-              // 新标题格式：农历日期（七曜）
-              const fullTitle = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
+              // 邮件标题格式：农历日期（七曜）
               const emailSubject = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
+              
+              // 动态发件人名称
+              const fromName = \`I OWN THIS DAY ONLY. \${lunarDayName} PLEASE!\`;
               
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
@@ -285,12 +287,13 @@ jobs:
               const lifeFilled = Math.floor((lifeProgress.percent / 100) * 20);
               const lifeBar = '█'.repeat(lifeFilled) + '░'.repeat(20 - lifeFilled);
               
-              // ========== 计算农历年度第几天 ==========
+              // 计算农历年度第几天
               const lunarYearStart = Lunar.Lunar.fromYmd(lunarYear, 1, 1);
               const startSolar = lunarYearStart.getSolar();
               const startDate = new Date(startSolar.getYear(), startSolar.getMonth() - 1, startSolar.getDay());
               const dayOfLunarYear = Math.floor((beijingTime - startDate) / (1000 * 60 * 60 * 24)) + 1;
               
+              // 邮件内容（去掉了人生任务段落）
               const content = 
                 '📊 **今日时间进度**\n' +
                 '┌────────────────────\n' +
@@ -331,8 +334,10 @@ jobs:
                 
                 '💫 _我的农历人生追踪_';
               
-              fs.writeFileSync('email_content.txt', fullTitle + '\n\n' + content);
+              // 写入文件
+              fs.writeFileSync('email_content.txt', emailSubject + '\n\n' + content);
               fs.writeFileSync('email_subject.txt', emailSubject);
+              fs.writeFileSync('from_name.txt', fromName);
               
             } catch (error) {
               console.error('❌ 运行失败:', error.message);
@@ -347,6 +352,10 @@ jobs:
         id: read_subject
         run: echo "subject=$(cat email_subject.txt)" >> $GITHUB_OUTPUT
       
+      - name: 读取发件人名称
+        id: read_from
+        run: echo "from_name=$(cat from_name.txt)" >> $GITHUB_OUTPUT
+      
       - name: 发送邮件
         uses: dawidd6/action-send-mail@v4
         with:
@@ -356,5 +365,5 @@ jobs:
           password: ${{secrets.MAIL_PASSWORD}}
           subject: ${{steps.read_subject.outputs.subject}}
           to: 1203402652@qq.com
-          from: 时间
+          from: ${{steps.read_from.outputs.from_name}}
           body: file://email_content.txt
