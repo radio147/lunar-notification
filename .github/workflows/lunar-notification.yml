@@ -266,7 +266,7 @@ jobs:
               const emailSubject = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
               
               // 动态发件人名称
-              const fromName = \`【小→形→神；取悦一个影子】 \${lunarDayName} \`;
+              const fromName = \`【燃烧；取悦一个影子】 \${lunarDayName} \`;
               
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
