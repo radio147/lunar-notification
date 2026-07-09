@@ -262,8 +262,8 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
-              // 🎯 邮件标题：【自强，厚德；一星如月】
-              const emailSubject = '【自强，厚德；一星如月】';
+              // 🎯 邮件标题：【自强，厚德；星如月】
+              const emailSubject = '【自强，厚德；星如月】';
               
               // 🎯 发件人名称：廿一（日）
               const fromName = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
