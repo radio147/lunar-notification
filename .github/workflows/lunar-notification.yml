@@ -262,11 +262,11 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
-              // 🎯 邮件标题：八月初一（金）
-              const emailSubject = (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '（' + sevenDaysFirstChar + '）';
+              // 🎯 邮件标题：八月初二（金）
+              const emailSubject = (isLeap ? '闰' : '') + lunarMonthName + '月' + lunarDayName + '（' + sevenDaysFirstChar + '）';
               
-              // 🎯 发件人名称：八月初一（金）
-              const fromName = (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '（' + sevenDaysFirstChar + '）';
+              // 🎯 发件人名称：八月初二（金）
+              const fromName = (isLeap ? '闰' : '') + lunarMonthName + '月' + lunarDayName + '（' + sevenDaysFirstChar + '）';
               
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
