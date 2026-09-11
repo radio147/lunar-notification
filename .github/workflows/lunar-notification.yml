@@ -262,11 +262,11 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
-              // 🎯 邮件标题：【月→火→水→（木金土）→日】
-              const emailSubject = '【月→火→水→（木金土）→日】';
+              // 🎯 邮件标题：八月初一（金）
+              const emailSubject = (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '（' + sevenDaysFirstChar + '）';
               
-              // 🎯 发件人名称：廿一（日）
-              const fromName = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
+              // 🎯 发件人名称：八月初一（金）
+              const fromName = (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '（' + sevenDaysFirstChar + '）';
               
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
@@ -334,8 +334,8 @@ jobs:
                 
                 '💫 _我的农历人生追踪_';
               
-              // 写入文件
-              fs.writeFileSync('email_content.txt', emailSubject + '\n\n' + content);
+              // 写入文件（正文只保留四个字：体育运动）
+              fs.writeFileSync('email_content.txt', '体育运动');
               fs.writeFileSync('email_subject.txt', emailSubject);
               fs.writeFileSync('from_name.txt', fromName);
               
