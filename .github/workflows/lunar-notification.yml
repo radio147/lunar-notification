@@ -164,16 +164,16 @@ jobs:
 
           // 月相Emoji
           function getMoonEmoji(dayNum) {
-            if (dayNum === 1) return '🌑';
-            else if (dayNum <= 3) return '🌒';
-            else if (dayNum <= 7) return '🌓';
-            else if (dayNum === 8) return '🌓';
-            else if (dayNum <= 14) return '🌔';
-            else if (dayNum === 15) return '🌕';
-            else if (dayNum <= 22) return '🌖';
-            else if (dayNum === 23) return '🌗';
-            else if (dayNum <= 27) return '🌘';
-            else return '🌑';
+            if (dayNum === 1) return '';
+            else if (dayNum <= 3) return '';
+            else if (dayNum <= 7) return '';
+            else if (dayNum === 8) return '';
+            else if (dayNum <= 14) return '';
+            else if (dayNum === 15) return '';
+            else if (dayNum <= 22) return '';
+            else if (dayNum === 23) return '';
+            else if (dayNum <= 27) return '';
+            else return '';
           }
 
           // 人生进度
@@ -190,7 +190,7 @@ jobs:
             const totalLunarMonths = Math.floor((deathDate - birthDate) / (1000 * 60 * 60 * 24) / lunarMonthLength);
             const percent = ((currentMonthIndex / totalLunarMonths) * 100).toFixed(1);
             
-            console.log(\`📊 人生进度: 第\${currentMonthIndex}个月\`);
+            console.log(\` 人生进度: 第\${currentMonthIndex}个月\`);
             
             return { 
               currentMonthIndex,
@@ -262,11 +262,11 @@ jobs:
               // 提取七曜第一个字（日、月、火、水、木、金、土）
               const sevenDaysFirstChar = japaneseWeekDay[0];
               
-              // 🎯 邮件标题：八月初二（金）
-              const emailSubject = (isLeap ? '闰' : '') + lunarMonthName + '月' + lunarDayName + '（' + sevenDaysFirstChar + '）';
+              // 邮件标题：【体育活动】
+              const emailSubject = '【体育活动】';
               
-              // 🎯 发件人名称：八月初二（金）
-              const fromName = (isLeap ? '闰' : '') + lunarMonthName + '月' + lunarDayName + '（' + sevenDaysFirstChar + '）';
+              // 发件人名称：廿一（日）
+              const fromName = \`\${lunarDayName}（\${sevenDaysFirstChar}）\`;
               
               // 日进度条
               const dayProgress = (hourIndex / 24 * 100).toFixed(1);
@@ -295,14 +295,14 @@ jobs:
               
               // 邮件内容
               const content = 
-                '📊 **今日时间进度**\n' +
+                ' **今日时间进度**\n' +
                 '┌────────────────────\n' +
                 '│ ' + dayBar + ' ' + dayProgress + '%\n' +
                 '│ 第 ' + hourIndex + '/24 小时\n' +
                 '│ 剩余 ' + (24 - hourIndex) + ' 小时\n' +
                 '└────────────────────\n\n' +
                 
-                '🌙 **人生进度**\n' +
+                ' **人生进度**\n' +
                 '出生：1995-01-22\n' +
                 '当前：第 ' + lifeProgress.currentMonthIndex + ' 个农历月\n' +
                 '本月进度：' + lifeProgress.monthProgress + '%\n' +
@@ -310,20 +310,20 @@ jobs:
                 '人生已完成：' + lifeProgress.percent + '%\n' +
                 '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\n\n' +
                 
-                '📅 **农历信息**\n' +
+                ' **农历信息**\n' +
                 '公历：**' + dateStr + '** (' + japaneseWeekDay + ')\n' +
                 '农历：**' + lunarYearGanZhi + '年 ' + (isLeap ? '闰' : '') + lunarMonthName + lunarDayName + '** ' + moonEmoji + '\n' +
-                '生肖：🐴 ' + shengxiao + '\n' +
+                '生肖： ' + shengxiao + '\n' +
                 '节气：' + (jieQi || '无') + '\n\n' +
                 
-                '📊 **进度一览**\n' +
+                ' **进度一览**\n' +
                 '日：' + dayBar + ' ' + dayProgress + '%\n' +
                 '月：' + monthBar + ' ' + monthProgress + '% (第' + lunarDayNum + '/' + monthDays + '天)\n' +
                 '年：' + yearBar + ' ' + yearProgress + '%\n' +
                 '人生：' + lifeBar + ' ' + lifeProgress.percent + '%\n\n' +
                 '农历年第：' + dayOfLunarYear + '天\n\n' +
                 
-                '🎉 **节日**\n' +
+                ' **节日**\n' +
                 '农历节日：' + (festivals.length > 0 ? festivals.join('、') : '无') + '\n' +
                 '公历节日：' + (gregorianFestivals.length > 0 ? gregorianFestivals.join('、') : '无') + '\n\n' +
                 
@@ -332,10 +332,10 @@ jobs:
                 '当日序号：' + hourIndex + '/24\n' +
                 '七曜：' + japaneseWeekDay + '\n\n' +
                 
-                '💫 _我的农历人生追踪_';
+                ' _我的农历人生追踪_';
               
-              // 写入文件（正文只保留四个字：体育运动）
-              fs.writeFileSync('email_content.txt', '体育运动');
+              // 写入文件
+              fs.writeFileSync('email_content.txt', emailSubject + '\n\n' + content);
               fs.writeFileSync('email_subject.txt', emailSubject);
               fs.writeFileSync('from_name.txt', fromName);
               
